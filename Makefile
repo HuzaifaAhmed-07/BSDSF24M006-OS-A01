@@ -44,7 +44,7 @@ $(OBJ_DIR)/%_pic.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 static: $(STATIC_BIN)
 
 $(STATIC_BIN): $(DRIVER_SRC) $(STATIC_LIB) | $(BIN_DIR)
-	$(CC) $(CFLAGS) $(DRIVER_SRC) -L$(LIB_DIR) -lmyutils -o $@
+	$(CC) $(CFLAGS) $(DRIVER_SRC) $(STATIC_LIB) -o $@
 
 $(STATIC_LIB): $(STATIC_OBJS) | $(LIB_DIR)
 	$(AR) $(ARFLAGS) $@ $^
