@@ -1,53 +1,107 @@
-# Static Libraries, Archiving, and Symbol Analysis
+# Feature 5: Documentation & Installation
 
----
+## 1. What is `groff` and how does man page formatting work?
 
-## 1. Makefile Differences: Library Creation vs. Direct Compilation
+`groff` (GNU roff) is the typesetting system that Linux's `man` command uses
+to render man pages. Man pages are plain text files written using roff
+"dot commands" — macros beginning with a `.` at the start of a line — from
+the `man` (`mdoc`/`man` macro package). The most common macros are:
 
-### Direct Compilation
-* **Process:** Intermediate object files (`.o`) are passed directly to `gcc` at the link stage.
-* **Output:** Produces a single binary directly from the specified object files.
-* **Linker Invocation Example:**
-  ```makefile
-  $(CC) $(CFLAGS) file1.o file2.o -o my_program
-  ```
+- `.TH` — the title heading: name, section number, date, source, manual name
+- `.SH` — a section heading (NAME, SYNOPSIS, DESCRIPTION, etc.)
+- `.B` / `.I` — bold / italic text
+- `.BI` — alternating bold/italic (used for function signatures)
+- `.nf` / `.fi` — no-fill / fill mode, used to preserve literal formatting
+  (e.g. code blocks) without groff rewrapping the lines
+- `.PP` — start a new paragraph
+- `.RI` — alternating roman/italic
 
-### Library Creation
-* **Process:** Intermediate object files (`.o`) are first packaged into an archive file (`.a`) using the archiver tool (`ar`).
-* **Linking:** When building the final binary, the compiler is invoked using:
-  * `-L<dir>`: Specifies the library search path/directory.
-  * `-l<name>`: Specifies the library name (omitting the `lib` prefix and the `.a` extension).
-* **Linker Invocation Example:**
-  ```makefile
-  # Package archive
-  ar rcs libmyutils.a file1.o file2.o
+When `man mycat` is run, `man` locates `mycat.3`, pipes it through `groff -man
+-Tascii` (or equivalent), and displays the result via a pager. The trailing
+`3` in the filename places it in **section 3** of the manual, which is
+reserved for library functions (as opposed to section 1, user commands, or
+section 2, system calls).
 
-  # Link against archive
-  $(CC) client.o -L. -lmyutils -o client_static
-  ```
+## 2. Why section 3 specifically?
 
----
+The Linux manual is divided into numbered sections:
 
-## 2. Purpose of `ar` and `ranlib`
+| Section | Contents |
+|---|---|
+| 1 | User commands |
+| 2 | System calls |
+| **3** | **Library functions (C library, our `libmyutils`)** |
+| 5 | File formats |
+| 7 | Miscellaneous |
+| 8 | Admin/root commands |
 
-* **`ar` (Archiver):**
-  * Creates, modifies, and extracts member files from archive files.
-  * Combines multiple object (`.o`) files into a single static library (`.a`).
-* **`ranlib`:**
-  * Generates an index of symbols defined within the archive and saves that symbol table directly inside the archive file.
-  * Accelerates symbol resolution when linking against the archive.
-* **Modern Integration:**
-  * Modern implementations of GNU `ar` perform indexing automatically when invoked with the `s` flag (e.g., `ar rcs libname.a obj1.o obj2.o`), making a separate call to `ranlib` largely redundant.
+Since `mycat()`, `mystrlen()`, etc. are C library functions callable from
+code (not standalone shell commands), they belong in section 3, installed
+to `man/man3/` and later `$(PREFIX)/share/man/man3/`.
 
----
+## 3. What does the `install` target do, and why those specific paths?
 
-## 3. Symbol Analysis with `nm`
+The `install` target copies build artifacts out of the project tree and into
+standard Linux Filesystem Hierarchy Standard (FHS) locations so the library,
+headers, binary, and documentation are available system-wide instead of only
+from inside the repo:
 
-* **Function:** `nm` inspects and displays the symbol tables of object files, static libraries, and compiled binaries.
-* **Archive Structure:**
-  * Within an archive (e.g., `libmyutils.a`), symbols are grouped by their member `.o` file.
-* **Common Symbol Type Indicators:**
-  * `T`: Symbol defined in the code/text section (e.g., an implemented function).
-  * `U`: Undefined symbol that requires resolution by the linker from another translation unit or library.
-* **Selective Static Linking:**
-  * When linking statically, the linker does not blindly copy the entire library. Instead, it extracts only the specific object members containing the required unresolved symbols into the final executable (`client_static`), resolving those references locally.
+- `bin/client_dynamic` → `$(PREFIX)/bin/client` — so `client` runs from any
+  directory without needing `./` or `LD_LIBRARY_PATH`
+- `lib/libmyutils.so` and `lib/libmyutils.a` → `$(PREFIX)/lib/` — the
+  standard runtime/link-time library search path
+- `include/*.h` → `$(PREFIX)/include/myutils/` — so other projects can
+  `#include <myutils/mystrfunctions.h>`
+- `man/man3/*.3` → `$(PREFIX)/share/man/man3/` — so `man mycat` works
+  globally
+
+`PREFIX` defaults to `/usr/local`, the conventional location for
+locally-built (non-package-manager) software, keeping it separate from
+files owned by the distro's package manager under `/usr`.
+
+## 4. Why is `ldconfig` needed after installing the shared library?
+
+`ldconfig` rebuilds the dynamic linker's cache (`/etc/ld.so.cache`), which
+maps library names to their locations on disk. Even though
+`/usr/local/lib` is normally already in the linker's default search path,
+the cache is only updated when `ldconfig` runs. Without it, `ld.so` may not
+find the newly installed `libmyutils.so` at runtime, and `client` would fail
+with an error like `error while loading shared libraries: libmyutils.so:
+cannot open shared object file`. This is the same reason we previously had
+to set `LD_LIBRARY_PATH` manually during development in Feature 4 — a
+system-wide install with `ldconfig` removes that requirement for end users.
+
+## 5. Why provide an `uninstall` target?
+
+Clean removal is expected of any well-behaved install system. Since
+`install` never records what it wrote anywhere else, `uninstall` mirrors it
+exactly — deleting the same explicit paths — so the system is returned to
+its pre-install state without leftover files. This also makes it easy to
+re-test the install process repeatedly during development
+(`make uninstall && make install`).
+
+## 6. Why does `make install` need `sudo`?
+
+`/usr/local/{bin,lib,include,share/man}` are owned by root and not writable
+by a normal user. `install` (the coreutils command, not just the Makefile
+target) will fail with a permission error without elevated privileges,
+hence `sudo make install`. `PREFIX` can be overridden
+(`make install PREFIX=$HOME/.local`) to install to a user-writable location
+without root, which is common practice for local/non-system installs.
+
+## 7. Git workflow for this feature
+
+- Branch: `man-pages`, created from `main` (or the previous feature branch)
+  with `git checkout -b man-pages`
+- Commits made incrementally as each man page and the install/uninstall
+  targets were added
+- Tag: `v0.4.1-final`, created as an **annotated** tag
+  (`git tag -a v0.4.1-final -m "Documentation and installation system"`)
+  so it carries author, date, and message metadata — unlike a lightweight
+  tag, which is just a pointer to a commit
+- Pushed with `git push origin man-pages --tags`
+- GitHub Release created from the `v0.4.1-final` tag, with no binary asset
+  required for this feature since it's the final merge point rather than a
+  new artifact type
+- Finally merged into `main` with `git checkout main && git merge man-pages`,
+  completing the project's Git history across all five features

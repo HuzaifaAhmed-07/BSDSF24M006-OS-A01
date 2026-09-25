@@ -1,0 +1,46 @@
+.TH MYSTRCMP 3 "November 2026" "libmyutils 0.4.1" "libmyutils Manual"
+.SH NAME
+mystrcmp \- compare two strings lexicographically
+.SH SYNOPSIS
+.nf
+.B #include <mystrfunctions.h>
+.sp
+.BI "int mystrcmp(const char *" str1 ", const char *" str2 );
+.fi
+.SH DESCRIPTION
+The
+.B mystrcmp
+function compares the two null-terminated strings
+.I str1
+and
+.I str2
+character by character, in the style of the standard
+.BR strcmp (3).
+.PP
+.B NULL
+arguments are handled defensively: if both are
+.BR NULL ,
+they are considered equal; if only one is
+.BR NULL ,
+it is treated as lexicographically smaller than the non-NULL string.
+.SH RETURN VALUE
+Returns an integer less than, equal to, or greater than zero if
+.I str1
+is found, respectively, to be less than, to match, or be greater than
+.IR str2 .
+.SH EXAMPLE
+.nf
+#include <mystrfunctions.h>
+#include <stdio.h>
+
+int main(void) {
+    int r = mystrcmp("apple", "banana");
+    if (r < 0)
+        printf("apple comes before banana\en");
+    return 0;
+}
+.fi
+.SH AUTHOR
+Written as part of the OS Assignment 01: Core C Utilities Library.
+.SH SEE ALSO
+.BR strcmp (3)

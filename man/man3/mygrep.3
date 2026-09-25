@@ -1,0 +1,53 @@
+.TH MYGREP 3 "November 2026" "libmyutils 0.4.1" "libmyutils Manual"
+.SH NAME
+mygrep \- search a file for lines matching a pattern
+.SH SYNOPSIS
+.nf
+.B #include <myfilefunctions.h>
+.sp
+.BI "int mygrep(const char *" filename ", const char *" pattern );
+.fi
+.SH DESCRIPTION
+The
+.B mygrep
+function opens the file named by
+.I filename
+and scans it line by line for the literal substring
+.IR pattern ,
+using
+.BR strstr (3).
+Each matching line is printed to
+.I stdout
+in the form
+.IR filename : line_number : line_text ,
+similar to
+.BR grep (1).
+.PP
+Note that
+.I pattern
+is matched as a literal substring, not a regular expression.
+.SH RETURN VALUE
+Returns the number of matching lines found (which may be 0).
+Returns \-1 if
+.I filename
+or
+.I pattern
+is
+.B NULL
+, or the file could not be opened.
+.SH EXAMPLE
+.nf
+#include <myfilefunctions.h>
+#include <stdio.h>
+
+int main(void) {
+    int matches = mygrep("notes.txt", "TODO");
+    printf("%d matches\en", matches);
+    return 0;
+}
+.fi
+.SH AUTHOR
+Written as part of the OS Assignment 01: Core C Utilities Library.
+.SH SEE ALSO
+.BR grep (1),
+.BR strstr (3)

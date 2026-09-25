@@ -1,0 +1,48 @@
+.TH MYSTRLEN 3 "November 2026" "libmyutils 0.4.1" "libmyutils Manual"
+.SH NAME
+mystrlen \- calculate the length of a string
+.SH SYNOPSIS
+.nf
+.B #include <mystrfunctions.h>
+.sp
+.BI "size_t mystrlen(const char *" str );
+.fi
+.SH DESCRIPTION
+The
+.B mystrlen
+function computes the length of the string pointed to by
+.IR str ,
+not including the terminating null byte.
+It is a custom reimplementation of the standard library's
+.BR strlen (3)
+function, provided as part of the
+.B libmyutils
+educational library.
+.PP
+If
+.I str
+is
+.B NULL
+the function returns 0 rather than causing undefined behaviour.
+.SH RETURN VALUE
+Returns the number of characters in
+.IR str ,
+excluding the null terminator.
+Returns 0 if
+.I str
+is
+.BR NULL .
+.SH EXAMPLE
+.nf
+#include <mystrfunctions.h>
+#include <stdio.h>
+
+int main(void) {
+    printf("%zu\en", mystrlen("hello"));  /* prints 5 */
+    return 0;
+}
+.fi
+.SH AUTHOR
+Written as part of the OS Assignment 01: Core C Utilities Library.
+.SH SEE ALSO
+.BR strlen (3)

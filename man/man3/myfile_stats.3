@@ -1,0 +1,58 @@
+.TH MYFILE_STATS 3 "November 2026" "libmyutils 0.4.1" "libmyutils Manual"
+.SH NAME
+myfile_stats \- count the lines and words in a file
+.SH SYNOPSIS
+.nf
+.B #include <myfilefunctions.h>
+.sp
+.BI "int myfile_stats(const char *" filename ", int *" line_count ", int *" word_count );
+.fi
+.SH DESCRIPTION
+The
+.B myfile_stats
+function opens the file named by
+.I filename
+and reads it line by line, incrementing
+.I *line_count
+for every line and accumulating
+.I *word_count
+using
+.BR mywordcount (3)
+on each line. Together these give a
+.BR wc (1)
+-style summary of the file.
+.PP
+All three parameters are required;
+.B NULL
+in any of
+.IR filename ,
+.IR line_count ,
+or
+.I word_count
+causes the function to fail immediately.
+.SH RETURN VALUE
+Returns 0 on success, with
+.I *line_count
+and
+.I *word_count
+populated.
+Returns \-1 if any argument is
+.B NULL
+or the file could not be opened.
+.SH EXAMPLE
+.nf
+#include <myfilefunctions.h>
+#include <stdio.h>
+
+int main(void) {
+    int lines, words;
+    if (myfile_stats("notes.txt", &lines, &words) == 0)
+        printf("%d lines, %d words\en", lines, words);
+    return 0;
+}
+.fi
+.SH AUTHOR
+Written as part of the OS Assignment 01: Core C Utilities Library.
+.SH SEE ALSO
+.BR wc (1),
+.BR mywordcount (3)

@@ -1,0 +1,47 @@
+.TH MYWORDCOUNT 3 "November 2026" "libmyutils 0.4.1" "libmyutils Manual"
+.SH NAME
+mywordcount \- count whitespace-separated words in a string
+.SH SYNOPSIS
+.nf
+.B #include <mystrfunctions.h>
+.sp
+.BI "int mywordcount(const char *" str );
+.fi
+.SH DESCRIPTION
+The
+.B mywordcount
+function scans the null-terminated string
+.I str
+and counts the number of contiguous, non-whitespace tokens ("words"),
+using
+.BR isspace (3)
+to detect word boundaries.
+.PP
+If
+.I str
+is
+.B NULL
+the function returns 0.
+.SH RETURN VALUE
+Returns the number of words found in
+.IR str .
+Returns 0 if
+.I str
+is
+.B NULL
+or contains no words.
+.SH EXAMPLE
+.nf
+#include <mystrfunctions.h>
+#include <stdio.h>
+
+int main(void) {
+    printf("%d\en", mywordcount("  the quick  brown fox "));  /* prints 4 */
+    return 0;
+}
+.fi
+.SH AUTHOR
+Written as part of the OS Assignment 01: Core C Utilities Library.
+.SH SEE ALSO
+.BR mygrep (3),
+.BR myfile_stats (3)

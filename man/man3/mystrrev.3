@@ -1,0 +1,52 @@
+.TH MYSTRREV 3 "November 2026" "libmyutils 0.4.1" "libmyutils Manual"
+.SH NAME
+mystrrev \- reverse a string in place
+.SH SYNOPSIS
+.nf
+.B #include <mystrfunctions.h>
+.sp
+.BI "char *mystrrev(char *" str );
+.fi
+.SH DESCRIPTION
+The
+.B mystrrev
+function reverses the null-terminated string pointed to by
+.I str
+in place, using a two-pointer swap from both ends toward the middle.
+The original buffer is modified directly; no new memory is allocated.
+.PP
+If
+.I str
+is
+.B NULL
+the function returns
+.B NULL
+without modifying anything.
+If the string has length 0 or 1, it is returned unchanged.
+.SH RETURN VALUE
+Returns a pointer to the same buffer passed in
+.RI ( str ),
+now containing the reversed string.
+Returns
+.B NULL
+if
+.I str
+was
+.BR NULL .
+.SH EXAMPLE
+.nf
+#include <mystrfunctions.h>
+#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    char buf[] = "hello";
+    printf("%s\en", mystrrev(buf));  /* prints "olleh" */
+    return 0;
+}
+.fi
+.SH NOTES
+Because the reversal happens in place, callers must pass a mutable,
+writable buffer (not a string literal).
+.SH AUTHOR
+Written as part of the OS Assignment 01: Core C Utilities Library.

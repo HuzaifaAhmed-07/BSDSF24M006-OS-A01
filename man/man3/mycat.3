@@ -1,0 +1,50 @@
+.TH MYCAT 3 "November 2026" "libmyutils 0.4.1" "libmyutils Manual"
+.SH NAME
+mycat \- print the contents of a file to standard output
+.SH SYNOPSIS
+.nf
+.B #include <myfilefunctions.h>
+.sp
+.BI "int mycat(const char *" filename );
+.fi
+.SH DESCRIPTION
+The
+.B mycat
+function opens the file named by
+.I filename
+for reading and writes its entire contents to
+.I stdout
+in fixed-size buffered chunks, similar in spirit to the
+.BR cat (1)
+utility.
+.PP
+If
+.I filename
+is
+.B NULL
+or the file cannot be opened, an error is reported via
+.BR perror (3)
+and the function fails.
+.SH RETURN VALUE
+Returns 0 on success.
+Returns \-1 if
+.I filename
+is
+.B NULL
+or the file could not be opened.
+.SH EXAMPLE
+.nf
+#include <myfilefunctions.h>
+
+int main(void) {
+    if (mycat("notes.txt") != 0)
+        return 1;
+    return 0;
+}
+.fi
+.SH AUTHOR
+Written as part of the OS Assignment 01: Core C Utilities Library.
+.SH SEE ALSO
+.BR cat (1),
+.BR mygrep (3),
+.BR myfile_stats (3)
