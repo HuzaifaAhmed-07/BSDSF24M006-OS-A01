@@ -74,7 +74,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 $(BIN_DIR) $(OBJ_DIR) $(LIB_DIR):
 	mkdir -p $@
 
-# ---- Feature 5: Installation ----
+# ---- Feature 5: Installation --
 install: dynamic static
 	@echo "Installing libmyutils to $(PREFIX) ..."
 	install -d $(INSTALL_BIN) $(INSTALL_LIB) $(INSTALL_INC) $(INSTALL_MAN)
@@ -93,7 +93,7 @@ uninstall:
 	rm -rf $(INSTALL_INC)
 	rm -f $(addprefix $(INSTALL_MAN)/,$(notdir $(MAN_PAGES)))
 	ldconfig
-	@echo "Uninstalled."
+	@echo "Uninstalled." 
 
 clean:
 	rm -rf $(OBJ_DIR)/*.o $(BIN_DIR)/* $(LIB_DIR)/*
